@@ -1,0 +1,46 @@
+#include <Servo.h>
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define SS_PIN 10
+#define RST_PIN 9
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
+
+Servo lockServo;  // Create Servo instance
+
+void setup() {
+  Serial.begin(9600);  // Initialize serial communication
+  
+  SPI.begin();  // Initialize SPI communication
+  mfrc522.PCD_Init();  // Initialize MFRC522 RFID reader
+  
+  lockServo.attach(6);  // Attach servo to pin 6
+  lockServo.write(0);  // Close the lock initially
+}
+
+void loop() {
+  // Check for RFID card
+  if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+    // Read card UID
+    String cardUID = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+      cardUID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : ""));
+      cardUID.concat(String(mfrc522.uid.uidByte[i], HEX));
+    }
+    cardUID.toUpperCase();  // Convert UID to uppercase
+    
+    // Compare UID with authorized card
+    if (cardUID == "04 D2 6C 8D") {
+      Serial.println("Access granted!");
+      lockServo.write(90);  // Open the lock
+      delay(1000);  // Hold the lock open for 1 second
+      lockServo.write(0);  // Close the lock
+    } else {
+      Serial.println("Access denied!");
+    }
+  }
+  
+  mfrc522.PICC_HaltA();  // Halt PICC
+  mfrc522.PCD_StopCrypto1();  // Stop encryption on PCD
+}
