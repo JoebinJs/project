@@ -1,0 +1,26 @@
+const int sensorPin = A0; // Soil moisture sensor is connected to analog pin A0
+const int transistorPin = 8;   // Transistor base is connected to digital pin 8
+
+int sensorValue = 0;      // Variable to store the value from the sensor
+int threshold = 300;      // Threshold value for dry soil (adjust as needed)
+
+void setup() {
+  pinMode(sensorPin, INPUT);
+  pinMode(transistorPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  sensorValue = analogRead(sensorPin); // Read the value from the soil moisture sensor
+  Serial.print("Soil Moisture Value: ");
+  Serial.println(sensorValue);
+
+  if(sensorValue < threshold) {
+    digitalWrite(transistorPin, HIGH); // Turn on the transistor (LED ON, pump ON)
+    Serial.println("Soil is dry. Pump is ON.");
+  } else {
+    digitalWrite(transistorPin, LOW);  // Turn off the transistor (LED OFF, pump OFF)
+    Serial.println("Soil is wet. Pump is OFF.");
+  }
+  delay(1000); // Wait for a second before reading the sensor again
+}
